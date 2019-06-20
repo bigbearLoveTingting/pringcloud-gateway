@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: health-web-api-gateway
+
+  profiles:
+    active: dev
+

@@ -1,0 +1,9 @@
+server:
+  # 注册中心服务端口
+  port: 8099
+spring:
+  application:
+    name: health-web-api-eureka
+
+  profiles:
+    active: dev

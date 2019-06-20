@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: health-web-api-eureka-client
+eureka:
+  instance:
+    hostname: localhost
+    # 心跳时间，即服务续约间隔时间（缺省为30s）
+    # 表示eureka client发送心跳给server端的频率。如果在leaseExpirationDurationInSeconds后，server端没有收到client的心跳，则将摘除该instance。除此之外，如果该instance实现了HealthCheckCallback，并决定让自己unavailable的话，则该instance也不会接收到流量，默认30秒。
+    lease-expiration-duration-in-seconds: 5
+    # 发呆时间，即服务续约到期时间（缺省为90s）
+    # 表示eureka server至上一次收到client的心跳之后，等待下一次心跳的超时时间，在这个时间内若没收到下一次心跳，则将移除该instance，该值默认为90秒。
+    lease-renewal-interval-in-seconds: 15
+  client:
+    # 拉取服务注册信息间隔（缺省为30s）
+    # 表示eureka client间隔多久去拉取服务注册信息，默认为30秒，对于api-gateway，如果要迅速获取服务注册状态，可以缩小该值，比如5秒。
+    registry-fetch-interval-seconds: 10
+    service-url:
+      defaultZone: http://${eureka.instance.hostname}:8099/eureka/
+    healthcheck:
+      # 开启健康检查（依赖spring-boot-starter-actuator）
+      enabled: true

@@ -1,0 +1,15 @@
+eureka:
+  instance:
+    hostname: localhost
+  server:
+    # 关闭自我保护模式，默认开启
+    enable-self-preservation: false
+    # eureka server清理无效节点的时间间隔，默认60000毫秒，即60秒。服务下线存在两种情况，一种是客户端主要发送“服务下线”的请求，另外一种是通过定时任务扫描，每隔固定的时间清理无效的节点信息。清理无效节点的策略由客户端决定，客户端节点会设置相应的上报时间和最大超时时间（最大超时时间必须超过上报时间，推介设置为3倍关系），eureka server至上一次收到client的心跳之后，等待下一次心跳的超时时间，在这个时间内若没收到下一次心跳，则将移除该instance
+    eviction-interval-timer-in-ms: 5000
+  client:
+    # 通过设置fetch-registry与register-with-eureka 表明自己是一个eureka服务
+    # 对于同一个进程，既可以作为注册中心的服务端，也可以作为注册中心的客户端，在本例中，注册中心提供单一的注册服务功能，不提供其他接口服务能力，所以设置为false，最终不作为服务实例注册在注册中心中供其他服务调用。
+    register-with-eureka: false
+    fetch-registry: false
+    service-url:
+      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/

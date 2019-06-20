@@ -1,0 +1,63 @@
+server:
+  # 端口
+  port: 8088
+eureka:
+  instance:
+    hostname: localhost
+    # 表示eureka server至上一次收到client的心跳之后，等待下一次心跳的超时时间，在这个时间内若没收到下一次心跳，则将移除该instance，该值默认为90秒。
+    lease-renewal-interval-in-seconds: 15
+    # 表示eureka client发送心跳给server端的频率。如果在leaseExpirationDurationInSeconds后，server端没有收到client的心跳，则将摘除该instance。除此之外，如果该instance实现了HealthCheckCallback，并决定让自己unavailable的话，则该instance也不会接收到流量，默认30秒。
+    lease-expiration-duration-in-seconds: 5
+  client:
+    # 表示eureka client间隔多久去拉取服务注册信息，默认为30秒，对于api-gateway，如果要迅速获取服务注册状态，可以缩小该值，比如5秒。
+    registry-fetch-interval-seconds: 5
+    service-url:
+      defaultZone: http://${eureka.instance.hostname}:8099/eureka/
+    healthcheck:
+      # 开启健康检查（依赖spring-boot-starter-actuator）
+      enabled: true
+spring:
+  cloud:
+    gateway:
+      # 网关路由
+      routes:
+        - id: health
+          # lb代表从注册中心获取服务health-web-api-eureka
+          uri: lb://HEALTH-WEB-API-EUREKA-CLIENT
+          order: 0
+          predicates:
+            - Path=/api/health/**
+          filters:
+            # StripPrefix是去掉前面的一个映射，PrefixPath是在前面加上一个映射
+            - StripPrefix=1
+            # 限流过滤器
+            - name: RequestRateLimiter
+              args:
+                # 使用 SpEL 表达式根据#{@beanName}从 Spring 容器中获取 Bean 对象
+                key-resolver: '#{@hostAddrKeyResolver}'
+                # 令牌桶每秒填充平均速率
+                redis-rate-limiter.replenishRate: 1
+                # 令牌桶容量
+                redis-rate-limiter.burstCapacity: 5
+            # 熔断过滤器
+            - name: Hystrix
+              args:
+                name: fallbackcmd
+                # 如果下游服务不可达（异常），将由fallbackcmd处理
+                fallbackUri: forward:/defaultfallback
+  redis:
+    port: 6379
+    host: localhost
+    database: 0
+
+# 熔断器配置
+hystrix:
+  command:
+    default:
+      execution:
+        isolation:
+          strategy: SEMAPHORE
+          thread:
+            # 超时时间为3秒
+            timeoutInMilliseconds: 3000
+  shareSecurityContext: true
